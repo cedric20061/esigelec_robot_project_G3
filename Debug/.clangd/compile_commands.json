@@ -8,5 +8,10 @@
       "directory" : "C:/Users/75401894/workspace_ccstheia/projet_robot/Debug",
       "command"   : "clang++ -I\"C:/ti/ccs2020/ccs/ccs_base/msp430/include\" -I\"C:/Users/75401894/workspace_ccstheia/projet_robot\" -I\"C:/ti/ccs2020/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430G2553__ -xc",
       "file"      : "C:/Users/75401894/workspace_ccstheia/projet_robot/src/capteurs.c"
+   },
+   {
+      "directory" : "C:/Users/75401894/workspace_ccstheia/projet_robot/Debug",
+      "command"   : "clang++ -I\"C:/ti/ccs2020/ccs/ccs_base/msp430/include\" -I\"C:/Users/75401894/workspace_ccstheia/projet_robot\" -I\"C:/ti/ccs2020/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include\" -D__MSP430G2553__ -xc",
+      "file"      : "C:/Users/75401894/workspace_ccstheia/projet_robot/src/capteurs copy.c"
    }
 ]
