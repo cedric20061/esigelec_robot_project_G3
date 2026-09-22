@@ -46,7 +46,7 @@ void octo_coupleur_reading_config(){
 
 void timer_set()
 {
-    TA0CTL = TASSEL_2 | ID_3 | TAIE;
+    TA0CTL = TASSEL_2 | ID_2 | TAIE;
     TA0CCR0 = 50000; // toute les 100ms
 }
 
