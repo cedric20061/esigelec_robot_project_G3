@@ -1,72 +1,67 @@
 #include "../projet_robot/headers/ADC.h"
-#include <msp430.h>
 #include "../projet_robot/headers/Afficheur.h"
+#include "../projet_robot/headers/engine.h"
+#include <msp430.h>
 
-// Actif à 1
-// LED1: P2.5
-// LED2: P2.4
-// LED3: P2.2
-// LED4: P2.1
 
-// Actif à 0
-// SW1: P2.6
-// SW2: P2.7
-//  S2: P1.3
+volatile int nbr_front_roue1 = 0;
+volatile int nbr_front_roue2 = 0;
 
-// Étapes:
-// - 1: PxSEL
-// - 2: I/O: PxDIR
-// - 3: REN + OUT
+#pragma vector=PORT2_VECTOR
+__interrupt void octo_coupleur(void)
+{
+    if((P2IFG & BIT0) == BIT0){
+        nbr_front_roue1++;
+        P2IES &= ~BIT0; // Sophie : i think it should be P2IES ^= BIT0 instead to alteranate between rising & falling edges
+        //that's what we did for the blinking LED ---> TBC
+        if(nbr_front_roue1 == 48) P2IE &= ~BIT0;
+        P2IFG &= ~BIT0;
+
+    }
+
+    if((P2IFG & BIT3) == BIT3){
+        nbr_front_roue2++;
+        P2IES &= ~BIT3; //same here
+        if(nbr_front_roue2 == 48) P2IE &= ~BIT3;
+        P2IFG &= ~BIT3;
+    }
+}
 
 int main(void) {
+
   volatile unsigned int i;
   WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
+  BCSCTL1= CALBC1_1MHZ;
+  DCOCTL= CALDCO_1MHZ;
+
+  engines_configs();
+  octo_coupleur_reading_config();
+  __enable_interrupt();
+
   ADC_init();
   Aff_Init();
-
-  // Mode selection
-  P1SEL &= ~(BIT3 | BIT1);
-  P1SEL2 &= ~(BIT3 | BIT1);
-  P2SEL &= ~(BIT1 | BIT2 | BIT4 | BIT5);
-  P2SEL2 &= ~(BIT1 | BIT2 | BIT4 | BIT5);
-
-  // IO direction
-  P1DIR &= ~(BIT3);                     // S2
-  P2DIR &= ~(BIT6 | BIT7);              // SW1-2
-  P2DIR |= (BIT1 | BIT2 | BIT4 | BIT5); // LED1-4
-
-  // pull res
-  P1REN |= BIT3 | BIT1;   // S2
-  P2REN |= (BIT6 | BIT7); // SW1-2
-  // pull-up
-  P1OUT |= BIT1 | BIT3;   // S2
-  P2OUT |= (BIT6 | BIT7); // SW1-2
-
-  // Default LED value
-  P2OUT &= ~(BIT1 | BIT2 | BIT4 | BIT5); // LED1-4
-
-  // P1DIR |= 0x01;                            // Set P1.0 to output direction
-
   volatile int result = 0;
-  int val = 0;
+
+  
   while (1) {
+    int val = 0;
+  
     Aff_Efface();
     ADC_Demarrer_conversion(3);
     Aff_valeur(convert_Hex_Dec(ADC_Lire_resultat()));
     val = convert_Hex_Dec(ADC_Lire_resultat());
 
     __delay_cycles(200000);
+    
 
-    if (val >= 0x590 )
-    {
-      P2OUT |= (BIT5|BIT4); /// Ici nous allons appeler les fonctions GAUCHE 
-      P2OUT &= ~(BIT2); // Ici nous la fonction Avancer est ajoutée on passe a 0
-    }
-    else
-    {
+    if (val >= 0x150) {
+      //robot_tourner_droite();
+      robot_arret();
+      // a 0
+    } else {
       robot_avancer();
-      P2OUT &= ~(BIT5|BIT4); /// Ici nous allons appler les fonctions GAUCHE OU DROITE ce qui passela sorie en stop 0 
-      P2OUT |= (BIT2); /// Ici nous avançons en passant le la sortie a 1
+
     }
   }
+      
 }
