@@ -1,67 +1,98 @@
-#include "../projet_robot/headers/ADC.h"
-#include "../projet_robot/headers/Afficheur.h"
-#include "../projet_robot/headers/engine.h"
+#include "./headers/actions.h"
+#include "./headers/engines.h"
 #include <msp430.h>
 
+volatile char nbr_front_roue1 = 0;
+volatile char nbr_front_roue2 = 0;
 
-volatile int nbr_front_roue1 = 0;
-volatile int nbr_front_roue2 = 0;
+extern volatile char distance_parcourue;
+extern volatile char is_moving;
+extern volatile int capt;
+volatile char sec = 0;
 
-#pragma vector=PORT2_VECTOR
-__interrupt void octo_coupleur(void)
-{
-    if((P2IFG & BIT0) == BIT0){
-        nbr_front_roue1++;
-        P2IES &= ~BIT0; // Sophie : i think it should be P2IES ^= BIT0 instead to alteranate between rising & falling edges
-        //that's what we did for the blinking LED ---> TBC
-        if(nbr_front_roue1 == 48) P2IE &= ~BIT0;
-        P2IFG &= ~BIT0;
+volatile char error = 0;
 
+void afficheTime(char sec) {
+  Aff_Efface();
+  Aff_valeur(convert_Hex_Dec(sec));
+}
+
+#pragma vector = PORT2_VECTOR
+__interrupt void octo_coupleur(void) {
+  if ((P2IFG & BIT0) == BIT0) {
+    nbr_front_roue1++;
+    P2IES ^= BIT0;
+    P2IFG &= ~BIT0;
+  }
+
+  if ((P2IFG & BIT3) == BIT3) {
+    nbr_front_roue2++;
+    P2IES ^= BIT3;
+    P2IFG &= ~BIT3;
+  }
+}
+
+int limit(char val) {
+  if (val < 0 || val > 100) {
+    return 50;
+  }
+  return val;
+}
+#pragma vector = TIMER0_A1_VECTOR
+__interrupt void enslavement(void) {
+  if (TA0CTL & TAIFG == TAIFG) {
+    if (is_moving) {
+      if (nbr_front_roue1 > nbr_front_roue2) {
+        error = nbr_front_roue1 - nbr_front_roue2;
+        TA1CCR1 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR1))));
+        TA1CCR2 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR2))));
+      } else {
+        error = nbr_front_roue2 - nbr_front_roue1;
+        TA1CCR1 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR1)));
+        TA1CCR2 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR2)));
+      }
+      distance_parcourue = (nbr_front_roue1 * 11) / 21;
     }
-
-    if((P2IFG & BIT3) == BIT3){
-        nbr_front_roue2++;
-        P2IES &= ~BIT3; //same here
-        if(nbr_front_roue2 == 48) P2IE &= ~BIT3;
-        P2IFG &= ~BIT3;
+    if (capt < 0x150) {
+      sec++;
     }
+    afficheTime(sec);
+    TA0CTL &= ~TAIFG;
+  }
+}
+
+void afficher_nbr_front() {
+  Aff_Efface();
+  Aff_valeur(convert_Hex_Dec(nbr_front_roue1));
 }
 
 int main(void) {
-
-  volatile unsigned int i;
   WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
-  BCSCTL1= CALBC1_1MHZ;
-  DCOCTL= CALDCO_1MHZ;
 
+  BCSCTL1 = CALBC1_1MHZ;
+  DCOCTL = CALDCO_1MHZ;
+  is_moving = 0;
+  distance_parcourue = 0;
+  sec = 0;
   engines_configs();
   octo_coupleur_reading_config();
-  __enable_interrupt();
-
+  timer_set();
+  timer_start();
   ADC_init();
   Aff_Init();
-  volatile int result = 0;
+  __enable_interrupt();
 
-  
-  while (1) {
-    int val = 0;
-  
-    Aff_Efface();
-    ADC_Demarrer_conversion(3);
-    Aff_valeur(convert_Hex_Dec(ADC_Lire_resultat()));
-    val = convert_Hex_Dec(ADC_Lire_resultat());
-
-    __delay_cycles(200000);
-    
-
-    if (val >= 0x150) {
-      //robot_tourner_droite();
-      robot_arret();
-      // a 0
-    } else {
-      robot_avancer();
-
-    }
-  }
-      
+//   homologation();
+  choreography();
+  //     afficher_nbr_front();
+  //     robot_tourner_droite();
+  //     afficher_nbr_front();
+  //     robot_avancer();
+  //     __delay_cycles(10000000);
+  //    afficher_nbr_front();
+  //     robot_tourner_gauche();
+  //     robot_avancer();
+  //     __delay_cycles(10000000);
+  //     robot_arret();
+  //     afficher_nbr_front();
 }
