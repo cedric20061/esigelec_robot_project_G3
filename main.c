@@ -4,8 +4,8 @@
 
 #define SEUIL_LUM 30
 
-volatile char nbr_front_roue1 = 0;
-volatile char nbr_front_roue2 = 0;
+volatile int nbr_front_roue1 = 0;
+volatile int nbr_front_roue2 = 0;
 
 extern volatile char distance_parcourue;
 extern volatile char is_moving;
@@ -57,19 +57,20 @@ __interrupt void enslavement(void)
          if(is_moving){
             if(nbr_front_roue1 > nbr_front_roue2){
                 error = nbr_front_roue1-nbr_front_roue2;
-                TA1CCR1 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR1))));
-                TA1CCR2 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR2))));
+                TA1CCR1 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR1) - K_PROPORTION*error)));
+                TA1CCR2 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR2) + K_PROPORTION*error)));
             }else {
                 error = nbr_front_roue2-nbr_front_roue1;
-                TA1CCR1 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR1)));
-                TA1CCR2 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR2)));
+                TA1CCR1 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR1) + K_PROPORTION*error));
+                TA1CCR2 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR2) - K_PROPORTION*error));
             }
             distance_parcourue = (nbr_front_roue1 * 11)/21;
         }
         if(capt < 0x150){
             sec++;
         }
-        afficheTime(sec);
+        // afficheTime(sec);
+        afficher_nbr_front();
 
         headlight_power();
         TA0CTL &= ~TAIFG;

@@ -71,8 +71,8 @@ void action_robot(int action)
             is_moving = 1;
             P2OUT &= ~BIT1;	//sens arrière roue gauche (a completer)
             P2OUT |= BIT5;	//sens avant roue droite (a completer)
-            TA1CCR1 = PERCENT_CONTROL(100); //activation roue gauche
-            TA1CCR2 = PERCENT_CONTROL(100); //activation roue droite
+            TA1CCR1 = PERCENT_CONTROL(95); //activation roue gauche
+            TA1CCR2 = PERCENT_CONTROL(95); //activation roue droite
             break;
         case ACTION_DROITE :
             is_moving = 0;

@@ -12,7 +12,7 @@
 
 #define PERCENT_CONTROL(percent) (percent*(TA1CCR0/100))
 #define VALUE_TO_PERCENT(value) (value/(TA1CCR0/100))
-#define K_PROPORTION 10 // Valeur de correction pour un rapport cyclique de 50% (K = 100 à PWM = 100%)
+#define K_PROPORTION 100 // Valeur de correction pour un rapport cyclique de 50% (K = 100 à PWM = 100%)
 
 volatile char is_moving;
 volatile char distance_parcourue;
