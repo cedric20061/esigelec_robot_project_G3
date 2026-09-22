@@ -1,6 +1,7 @@
-"./main copy.obj"
 "./main.obj"
-"./src/capteurs copy.obj"
+"./src/ADC.obj"
+"./src/Afficheur.obj"
 "./src/capteurs.obj"
+"./src/engine.obj"
 "../lnk_msp430g2553.cmd"
 -llibc.a
