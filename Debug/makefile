@@ -11,7 +11,9 @@ GEN_CMDS__FLAG :=
 
 ORDERED_OBJS += \
 "./main.obj" \
+"./src/ADC.obj" \
 "./src/Afficheur.obj" \
+"./src/actions.obj" \
 "./src/engines.obj" \
 "../lnk_msp430g2553.cmd" \
 $(GEN_CMDS__FLAG) \
@@ -158,8 +160,8 @@ projet_robot.txt: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "main.obj" "src\Afficheur.obj" "src\engines.obj" 
-	-$(RM) "main.d" "src\Afficheur.d" "src\engines.d" 
+	-$(RM) "main.obj" "src\ADC.obj" "src\Afficheur.obj" "src\actions.obj" "src\engines.obj" 
+	-$(RM) "main.d" "src\ADC.d" "src\Afficheur.d" "src\actions.d" "src\engines.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

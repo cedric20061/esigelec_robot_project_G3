@@ -7,6 +7,7 @@ main.obj: C:/ti/ccs2020/ccs/ccs_base/msp430/include/in430.h
 main.obj: C:/ti/ccs2020/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include/intrinsics.h
 main.obj: C:/ti/ccs2020/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include/intrinsics_legacy_undefs.h
 main.obj: ../headers/engines.h
+main.obj: ../headers/actions.h
 
 ../main.c:
 
@@ -21,4 +22,6 @@ C:/ti/ccs2020/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include/intrinsics.h:
 C:/ti/ccs2020/ccs/tools/compiler/ti-cgt-msp430_21.6.1.LTS/include/intrinsics_legacy_undefs.h:
 
 ../headers/engines.h:
+
+../headers/actions.h:
 

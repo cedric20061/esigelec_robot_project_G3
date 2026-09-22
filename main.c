@@ -1,14 +1,22 @@
 #include <msp430.h>
 #include "./headers/engines.h"
+#include "./headers/actions.h"
 
 
 volatile char nbr_front_roue1 = 0;
 volatile char nbr_front_roue2 = 0;
 
-volatile char distance_parcourue = 0;
-
+extern volatile char distance_parcourue;
 extern volatile char is_moving;
+extern volatile int capt;
+volatile char sec = 0;
+
 volatile char error = 0;
+
+void afficheTime(char sec){
+  Aff_Efface();
+  Aff_valeur(convert_Hex_Dec(sec));
+}
 
 #pragma vector=PORT2_VECTOR
 __interrupt void octo_coupleur(void)
@@ -42,14 +50,17 @@ __interrupt void enslavement(void)
                 error = nbr_front_roue1-nbr_front_roue2;
                 TA1CCR1 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR1))));
                 TA1CCR2 = PERCENT_CONTROL(limit((VALUE_TO_PERCENT(TA1CCR2))));
-                distance_parcourue = (nbr_front_roue1 * 11)/21;
             }else {
                 error = nbr_front_roue2-nbr_front_roue1;
                 TA1CCR1 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR1)));
                 TA1CCR2 = PERCENT_CONTROL(limit(VALUE_TO_PERCENT(TA1CCR2)));
-                distance_parcourue = (nbr_front_roue1 * 11)/21;
             }
+            distance_parcourue = (nbr_front_roue1 * 11)/21;
         }
+        if(capt < 0x150){
+            sec++;
+        }
+        afficheTime(sec);
         TA0CTL &= ~TAIFG;
     }
 }
@@ -67,24 +78,27 @@ int main(void)
     BCSCTL1= CALBC1_1MHZ;
     DCOCTL= CALDCO_1MHZ;
     is_moving = 0;
+    distance_parcourue = 0;
+    sec=0;
     engines_configs();
     octo_coupleur_reading_config();
     timer_set();
     timer_start();
+    ADC_init();
     Aff_Init();
     __enable_interrupt();
 
-    afficher_nbr_front();
-    robot_tourner_droite();
-    afficher_nbr_front();
-    robot_avancer();
-    __delay_cycles(10000000);
-   afficher_nbr_front();
-    robot_tourner_gauche();
-    robot_avancer();
-    __delay_cycles(10000000); 
-    robot_arret();
-    afficher_nbr_front();
-    while(1);
-
+    
+    homologation();
+//     afficher_nbr_front();
+//     robot_tourner_droite();
+//     afficher_nbr_front();
+//     robot_avancer();
+//     __delay_cycles(10000000);
+//    afficher_nbr_front();
+//     robot_tourner_gauche();
+//     robot_avancer();
+//     __delay_cycles(10000000); 
+//     robot_arret();
+//     afficher_nbr_front();
 }

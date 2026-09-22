@@ -15,6 +15,7 @@
 #define K_PROPORTION 10 // Valeur de correction pour un rapport cyclique de 50% (K = 100 à PWM = 100%)
 
 volatile char is_moving;
+volatile char distance_parcourue;
 
 void engines_configs();
 
