@@ -3,9 +3,12 @@
 #include "../headers/engines.h"
 #include "../headers/Afficheur.h"
 
+
 extern volatile char distance_parcourue;
 extern volatile char is_moving;
 extern volatile int capt;
+
+
 void homologation(){
     is_moving =1;
     capt = 0;
@@ -24,6 +27,6 @@ void homologation(){
 
 void choreography(){
     while(1){
-        
+
     }
 }

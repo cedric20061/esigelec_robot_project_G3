@@ -2,6 +2,7 @@
 #include "./headers/engines.h"
 #include "./headers/actions.h"
 
+#define SEUIL_LUM 30
 
 volatile char nbr_front_roue1 = 0;
 volatile char nbr_front_roue2 = 0;
@@ -41,6 +42,14 @@ int limit(char val){
     }
     return val;
 }
+
+void headlight_power(){
+    ADC_Demarrer_conversion(2);
+    int lum = ADC_Lire_resultat()/10;
+    if(lum <= SEUIL_LUM) P1OUT |= (BIT0 | BIT6);
+    else P1OUT &= ~(BIT0 | BIT6);
+}
+
 #pragma vector=TIMER0_A1_VECTOR
 __interrupt void enslavement(void)
 {
@@ -61,14 +70,24 @@ __interrupt void enslavement(void)
             sec++;
         }
         afficheTime(sec);
+
+        headlight_power();
         TA0CTL &= ~TAIFG;
     }
 }
 
-
 void afficher_nbr_front(){
     Aff_Efface();
     Aff_valeur(convert_Hex_Dec(nbr_front_roue1));
+}
+
+void headlight_config(){
+    P1SEL &= ~(BIT0 | BIT6);
+    P1SEL2 &= ~(BIT0 | BIT6);
+
+    P1DIR |= (BIT0 | BIT6);
+
+    P1OUT &= ~(BIT0 | BIT6);
 }
 
 int main(void)
@@ -81,13 +100,13 @@ int main(void)
     distance_parcourue = 0;
     sec=0;
     engines_configs();
+    headlight_config();
     octo_coupleur_reading_config();
     timer_set();
     timer_start();
     ADC_init();
     Aff_Init();
     __enable_interrupt();
-
     
     homologation();
 //     afficher_nbr_front();
