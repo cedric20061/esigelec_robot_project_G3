@@ -7,7 +7,7 @@
 volatile int nbr_front_roue1 = 0;
 volatile int nbr_front_roue2 = 0;
 
-extern volatile char distance_parcourue;
+extern volatile char distance_parcourue; // only goes til 127 --> should shange this one too en int 
 extern volatile char is_moving;
 extern volatile int capt;
 volatile char sec = 0;
