@@ -6,31 +6,8 @@
 #define ACTION_GAUCHE   1
 #define ACTION_AVANCE   2
 #define ACTION_DROITE   3
-//-----------------------------------------------------------------------------------
-//avancer d'une cellule (n'affecte que le parametre de position du robot dans le simulateur d'environnement)
-//entrees
-//  o_r         orientation robot
-//sorties
-//  x_r, y_r    coordonnees robot
 
-
-// CONST WE HAVE TO REDEFINE --> NO LONGER WORKING IN A SIMULATED ENVIRONMENT:
-/*#define DIM_LABY	    16
-#define X_SORTIE        DIM_LABY-2
-#define Y_SORTIE        DIM_LABY-1
-
-//constantes pour simulateur d'environnement
-#define ORI_DROITE      1
-#define ORI_HAUT        2
-#define ORI_GAUCHE      3
-#define ORI_BAS         4
-#define ACTION_ARRET    0
-#define ACTION_GAUCHE   1
-#define ACTION_AVANCE   2
-#define ACTION_DROITE   3
-*/
-
-#define PERCENT_CONTROLE(percent) (percent*(TA1CCR0/100))
+extern volatile char is_moving;
 
 void engines_configs(){
     P2SEL &= ~(BIT1 | BIT5); // engine directions (A --> left engine and B--> Right engine)
@@ -43,7 +20,7 @@ void engines_configs(){
     P2SEL |= (BIT2 | BIT4);
     P2SEL2 &= ~(BIT2 | BIT4);
 
-    TA1CTL =TASSEL_2 | MC_1 | ID_0; // configuration des signaux PWM envoyé aux moteur pour leur activation 
+    TA1CTL =TASSEL_2 | MC_1 | ID_2; // configuration des signaux PWM envoyé aux moteur pour leur activation 
     TA1CCTL1 |= OUTMOD_7;
     TA1CCTL2 |= OUTMOD_7;
 
@@ -67,40 +44,62 @@ void octo_coupleur_reading_config(){
     P2IES |= BIT3;
 }
 
+void timer_set()
+{
+    TA0CTL = TASSEL_2 | ID_3 | TAIE;
+    TA0CCR0 = 50000; // toute les 100ms
+}
+
+void timer_start()
+{
+    TA0CTL |= MC_3;
+}
+
+void timer_reset()
+{
+    TA0CTL &= ~MC_3;
+}
+
 
 void action_robot(int action)
 {
     switch(action)
     {
         case ACTION_AVANCE : // On favorise l'accélération car la roue folle est à l'arrière
-            TA1CCR1 = PERCENT_CONTROLE(50); //activation roue gauche
-            TA1CCR2 = PERCENT_CONTROLE(50); //activation roue droite
-            P2OUT &= ~BIT1;	//sens avant roue gauche (a completer)
+            is_moving = 1;
+            P2OUT &= ~BIT1;	//sens arrière roue gauche (a completer)
             P2OUT |= BIT5;	//sens avant roue droite (a completer)
+            TA1CCR1 = PERCENT_CONTROL(50); //activation roue gauche
+            TA1CCR2 = PERCENT_CONTROL(50); //activation roue droite
             break;
         case ACTION_DROITE :
-            TA1CCR1 = 2500; //activation roue gauche
-            TA1CCR2 = 2500; //activation roue droite
-            P2OUT |= BIT1;	//sens avant roue gauche (a completer)
+            is_moving = 0;
+            P2OUT &= ~BIT1;	//sens avant roue gauche (a completer)
             P2OUT &= ~BIT5;	//sens avant roue droite (a completer)
+            TA1CCR1 = PERCENT_CONTROL(100); //activation roue gauche
+            TA1CCR2 = PERCENT_CONTROL(60); //activation roue droite
+            
             break;
         case ACTION_GAUCHE :
-            TA1CCR1 = 2500; //activation roue gauche
-            TA1CCR2 = 2500; //activation roue droite
-            P2OUT &= ~BIT1;	//sens avant roue gauche (a completer)
+            is_moving = 0;
+            P2OUT |= BIT1;	//sens avant roue gauche (a completer)
             P2OUT |= BIT5;	//sens avant roue droite (a completer)
+            TA1CCR1 = PERCENT_CONTROL(60); //activation roue gauche
+            TA1CCR2 = PERCENT_CONTROL(100); //activation roue droite
             break;
         case ACTION_ARRET :
-            TA1CCR1 = 0; //activation roue gauche
-            TA1CCR2 = 0; //activation roue droite
-            P2OUT |= BIT1;	//sens avant roue gauche (a completer)
-            P2OUT |= BIT5;	//sens avant roue droite
+            is_moving = 0;
+            P2OUT &= ~BIT1;	//sens arrière roue gauche (a completer)
+            P2OUT |= BIT5;	//sens avant roue droite (a completer)
+            TA1CCR1 = PERCENT_CONTROL(0); //activation roue gauche
+            TA1CCR2 = PERCENT_CONTROL(0); //activation roue droite
             break;
 		default :
-            TA1CCR1 = 0; //activation roue gauche
-            TA1CCR2 = 0; //activation roue droite
-            P2OUT |= BIT1;	//sens avant roue gauche (a completer)
-            P2OUT |= BIT5;	//sens avant roue droite
+            is_moving = 0;
+            P2OUT &= ~BIT1;	//sens arrière roue gauche (a completer)
+            P2OUT |= BIT5;	//sens avant roue droite (a completer)
+            TA1CCR1 = PERCENT_CONTROL(0); //activation roue gauche
+            TA1CCR2 = PERCENT_CONTROL(0); //activation roue droite
             break;
     }
 }
@@ -116,8 +115,10 @@ robot_avancer()
 void
 robot_tourner_gauche()
 {
+    action_robot(ACTION_ARRET);
     action_robot(ACTION_GAUCHE);        //positionner les bits du controle moteur
-	//a completer
+    __delay_cycles(500000);
+    action_robot(ACTION_ARRET);
 }
 //quart de tour a droite (n'affecte que le parametre de direction du robot dans le simulateur d'environnement)
 //entrees
@@ -125,7 +126,10 @@ robot_tourner_gauche()
 void
 robot_tourner_droite()
 {
+    action_robot(ACTION_ARRET);
     action_robot(ACTION_DROITE);        //positionner les bits du controle moteur
+    __delay_cycles(500000);
+    action_robot(ACTION_ARRET);
 }
 
 void robot_arret(){
