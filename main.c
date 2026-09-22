@@ -2,16 +2,18 @@
 #include "./headers/engines.h"
 #include "./headers/actions.h"
 
-#define SEUIL_LUM 30
+#define SEUIL_LUM 30 //lifgt threshold to switch on the headlights
 
+//store the number of encoder edges detected for each wheel
 volatile int nbr_front_roue1 = 0;
 volatile int nbr_front_roue2 = 0;
 
 extern volatile char distance_parcourue; // only goes til 127 --> should shange this one too en int 
 extern volatile char is_moving;
 extern volatile int capt;
-volatile char sec = 0;
+volatile int sec = 0;
 
+//store the difference between the two encoder counters
 volatile char error = 0;
 
 void afficheTime(char sec){
@@ -19,6 +21,7 @@ void afficheTime(char sec){
   Aff_valeur(convert_Hex_Dec(sec));
 }
 
+//define the interrupt routine for the two optocouplers
 #pragma vector=PORT2_VECTOR
 __interrupt void octo_coupleur(void)
 {
@@ -36,13 +39,16 @@ __interrupt void octo_coupleur(void)
     }
 }
 
+//keep a pwm %age inside the valid range
 int limit(char val){
+  //check whether the percentage is outside the 0–100% range
     if(val<0 || val>100) {
         return 50;
     }
     return val;
 }
 
+//read the light sensor and control the launchpad LEDs (led1 & 2 --> green &red)
 void headlight_power(){
     ADC_Demarrer_conversion(2);
     int lum = ADC_Lire_resultat()/10;
