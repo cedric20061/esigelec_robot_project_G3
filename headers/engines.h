@@ -36,6 +36,8 @@
 // Converts a PWM compare value back into a duty-cycle percentage
 #define VALUE_TO_PERCENT(value) ((value) / (TA1CCR0 / 100))
 
+#define TICKS_TO_DISTANCE(ticks) ((long)ticks * WHEEL_PERIMETER_MM) / ENCODER_SLOTS_PER_REV
+
 // Proportional gain used by the wheel-speed regulation loop (see the
 // TIMER0_A1_VECTOR interrupt in main.c).
 //
@@ -48,16 +50,18 @@
 // project, so the gain has to be tuned by hand instead. Start low and
 // increase gradually while watching for oscillation (the wheel speeds
 // hunting back and forth instead of settling).
-#define SPEED_CORRECTION_GAIN 3
+#define SPEED_CORRECTION_GAIN 10
 
 // Shared engine/robot state - defined once in engines.c, declared here
 // as extern so every file that needs them sees the SAME variable
 // instead of each getting its own private copy (which is what used to
 // happen when these were declared here without `extern`).
-extern volatile char robot_is_moving;
-extern volatile long distance_traveled_mm;
+volatile char robot_is_moving;
 
-// Function prototypes (implemented in engines.c)
+volatile int encoder_ticks_left;
+volatile int encoder_ticks_right;
+volatile int total_encoder_tick;
+
 void engines_configs();
 int  clamp_percentage(int percent);
 void set_robot_action(int action);

@@ -4,16 +4,20 @@
 #include "../headers/Afficheur.h"
 #include "../headers/homologation.h"
 
-// Total distance for the qualifying run, in millimeters (1.30m, as
-// required by the contest rules)
-#define HOMOLOGATION_DISTANCE_MM 1300
 
 // Hard time limit for the qualifying run (contest rules: 10s, paused
 // while an obstacle is being presented - see main.c's Timer0 ISR, which
 // only increments elapsed_seconds while no obstacle is detected).
 #define HOMOLOGATION_TIMEOUT_SECONDS 10
 
-volatile int distance_sensor_reading = 0;
+extern volatile int distance_sensor_reading;
+extern volatile char robot_is_moving;
+extern volatile int elapsed_seconds;
+
+extern volatile int encoder_ticks_left;
+extern volatile int encoder_ticks_right;
+
+static volatile int distance_traveled_mm;
 
 // Reports "obstacle present" only once the raw ADC reading has been
 // above the threshold on two consecutive samples. A single noisy
@@ -26,7 +30,7 @@ static int obstacle_detected(){
     int raw = ADC_Lire_resultat();
     // Kept raw on purpose: convert_Hex_Dec() is for the 7-segment
     // display, not for threshold comparisons (see the previous review).
-    distance_sensor_reading = raw;
+    distance_sensor_reading = convert_Hex_Dec(raw);
 
     int reading_is_high = (raw >= STOP_DISTANCE_THRESHOLD);
     int confirmed = reading_is_high && previous_reading_was_high;
@@ -38,7 +42,7 @@ void homologation(){
     robot_is_moving = 1;
     distance_sensor_reading = 0;
     elapsed_seconds = 0;
-
+    long delta = 0;
     // Stops as soon as EITHER the distance is covered OR the 10s budget
     // (paused while an obstacle is present) runs out.
     while(distance_traveled_mm <= HOMOLOGATION_DISTANCE_MM
@@ -53,6 +57,7 @@ void homologation(){
         } else {
             robot_move_forward();
         }
+        distance_traveled_mm = encoder_ticks_left*5;
     }
 
     robot_stop();
