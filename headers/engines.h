@@ -5,54 +5,69 @@
 
 #include <msp430.h>
 
-//defining values for robot actions (cf previous tps)
-#define ACTION_ARRET    0
-#define ACTION_GAUCHE   1
-#define ACTION_AVANCE   2
-#define ACTION_DROITE   3
+// Robot action codes, used by set_robot_action()
+#define ACTION_STOP     0
+#define ACTION_LEFT     1
+#define ACTION_FORWARD  2
+#define ACTION_RIGHT    3
+#define ACTION_BRAKE    4
 
-//number of "white" or "dark" marks on the encoder wheel (inner white wheel)
-#define CRAN 12
+// Number of light/dark marks on the encoder wheel (inner white wheel)
+#define ENCODER_SLOTS_PER_REV 24
 
-//wheel radius in cm
-#define RADIUS 2 
-#define PERIMETER (RADIUS * 44/7)
+// Wheel geometry, in millimeters.
+// Millimeters (rather than centimeters) are used on purpose: the
+// distance-per-tick calculation involves an integer division that
+// truncates, and the smaller the unit, the smaller the *relative*
+// error that truncation introduces.
+#define WHEEL_RADIUS_MM 20
+// Wheel circumference, approximated with pi ~= 22/7 (2*pi*r)
+#define WHEEL_PERIMETER_MM ((2 * WHEEL_RADIUS_MM * 22) / 7)
 
-//maccro that converts a %age into a pwm timer value (with a period of TA1CCR0)
-#define PERCENT_CONTROL(percent) (percent*(TA1CCR0/100))
+// Converts a duty-cycle percentage (0-100) into a PWM compare value for
+// the current PWM period (TA1CCR0)
+#define PERCENT_CONTROL(percent) ((percent) * (TA1CCR0 / 100))
 
-//maccro that converts a pwm value into a %
-#define VALUE_TO_PERCENT(value) (value/(TA1CCR0/100))
+// Converts a PWM compare value back into a duty-cycle percentage
+#define VALUE_TO_PERCENT(value) ((value) / (TA1CCR0 / 100))
 
-//proportional correction coefficient used by the regulation
-//here we cannot use a PID as adviced coz the MSP430 is not fast enough to dot hose calculus
-#define K_PROPORTION 100 // Valeur de correction pour un rapport cyclique de 50% (K = 100 à PWM = 100%)
+#define TICKS_TO_DISTANCE(ticks) ((long)ticks * WHEEL_PERIMETER_MM) / ENCODER_SLOTS_PER_REV
 
-//varaible that stores whether the robot is currently moving (volatile bc the value can be changed inside an interrupt)
-volatile char is_moving;
-//variable that stores the etimated teavelled distance by the robot
-volatile char distance_parcourue;
+// Proportional gain used by the wheel-speed regulation loop (see the
+// TIMER0_A1_VECTOR interrupt in main.c).
+//
+// This value is NOT universal - it depends on:
+//   - the control loop period (currently ~1s, see timer_set() below)
+//   - the PWM frequency / period (TA1CCR0)
+//   - the encoder resolution (ENCODER_SLOTS_PER_REV)
+// A real PID controller would adapt to these automatically, but running
+// one every control tick is more than the MSP430G2553 needs for this
+// project, so the gain has to be tuned by hand instead. Start low and
+// increase gradually while watching for oscillation (the wheel speeds
+// hunting back and forth instead of settling).
+#define SPEED_CORRECTION_GAIN 10
 
-//Function prototypes en bas are implemented in engine.c
+// Shared engine/robot state - defined once in engines.c, declared here
+// as extern so every file that needs them sees the SAME variable
+// instead of each getting its own private copy (which is what used to
+// happen when these were declared here without `extern`).
+volatile char robot_is_moving;
 
-void engines_configs(); 
+volatile int encoder_ticks_left;
+volatile int encoder_ticks_right;
+volatile int total_encoder_tick;
 
-void action_robot(int action);
-
-void robot_avancer();
-
-void robot_tourner_gauche();
-
-void robot_tourner_droite();
-
-void robot_arret();
-
-void octo_coupleur_reading_config();
-
+void engines_configs();
+int  clamp_percentage(int percent);
+void set_robot_action(int action);
+void robot_move_forward();
+void robot_turn_left();
+void robot_turn_right();
+void robot_stop();
+void robot_brake();
+void optocoupler_config();
 void timer_set();
-
 void timer_start();
-
 void timer_reset();
 
 #endif
