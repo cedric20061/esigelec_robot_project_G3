@@ -1,7 +1,7 @@
-#include <msp430.h>
+#include "./headers/choreography.h"
 #include "./headers/engines.h"
 #include "./headers/homologation.h"
-#include "./headers/choreography.h"
+#include <msp430.h>
 
 #define LIGHT_THRESHOLD 30 // light level threshold to switch on the headlights
 
@@ -11,7 +11,6 @@
 // visible project-wide like before.
 extern volatile int encoder_ticks_left;
 extern volatile int encoder_ticks_right;
-extern volatile int total_encoder_tick;
 
 
 // Elapsed seconds while the front sensor sees no close obstacle
@@ -21,42 +20,45 @@ extern volatile int elapsed_seconds;
 
 extern volatile char robot_is_moving;
 
-void display_encoder_count(){
-    Aff_Efface();
-    Aff_valeur(convert_Hex_Dec(encoder_ticks_left));
+void display_encoder_count() {
+  Aff_Efface();
+  Aff_valeur(convert_Hex_Dec(encoder_ticks_left));
 }
 
-// Reads the light sensor and drives the LaunchPad LEDs (LED1 & LED2 -> green & red)
-void headlight_power(){
-    ADC_Demarrer_conversion(2);
-    int light_level = ADC_Lire_resultat()/10;
-    if(light_level <= LIGHT_THRESHOLD) P1OUT |= (BIT0 | BIT6);
-    else P1OUT &= ~(BIT0 | BIT6);
-}
 
-void headlight_config(){
-    P1SEL &= ~(BIT0 | BIT6);
-    P1SEL2 &= ~(BIT0 | BIT6);
-
-    P1DIR |= (BIT0 | BIT6);
-
+// Reads the light sensor and drives the LaunchPad LEDs (LED1 & LED2 -> green
+// & red)
+void headlight_power() {
+  ADC_Demarrer_conversion(2);
+  int light_level = ADC_Lire_resultat() / 10;
+  if (light_level <= LIGHT_THRESHOLD)
+    P1OUT |= (BIT0 | BIT6);
+  else
     P1OUT &= ~(BIT0 | BIT6);
 }
 
-void display_time(int seconds){
+void headlight_config() {
+  P1SEL &= ~(BIT0 | BIT6);
+  P1SEL2 &= ~(BIT0 | BIT6);
+
+  P1DIR |= (BIT0 | BIT6);
+
+  P1OUT &= ~(BIT0 | BIT6);
+}
+
+void display_time(int seconds) {
   Aff_Efface();
   Aff_valeur(convert_Hex_Dec(seconds));
 }
 
 // Interrupt routine for the two optocouplers (wheel encoders)
-#pragma vector=PORT2_VECTOR
-__interrupt void optocoupler_isr(void)
-{
-    if((P2IFG & BIT0) == BIT0){
-        encoder_ticks_left++;
-        P2IES ^= BIT0; // toggle edge so we catch both edges of the slot
-        P2IFG &= ~BIT0;
-    }
+#pragma vector = PORT2_VECTOR
+__interrupt void optocoupler_isr(void) {
+  if ((P2IFG & BIT0) == BIT0) {
+    encoder_ticks_left++;
+    P2IES ^= BIT0; // toggle edge so we catch both edges of the slot
+    P2IFG &= ~BIT0;
+  }
 
     if((P2IFG & BIT3) == BIT3){
         encoder_ticks_right++;
@@ -66,20 +68,18 @@ __interrupt void optocoupler_isr(void)
     }
 }
 
-#pragma vector=TIMER0_A1_VECTOR
-__interrupt void speed_regulation_isr(void)
-{
-    if((TA0CTL & TAIFG == TAIFG)){
+#pragma vector = TIMER0_A1_VECTOR
+__interrupt void speed_regulation_isr(void) {
+  if ((TA0CTL & TAIFG) == TAIFG) {
 
         if(robot_is_moving){
-            
-            // static int prev_ticks_left = 0;
-            // static int prev_ticks_right = 0;
+            static int prev_ticks_left = 0;
+            static int prev_ticks_right = 0;
 
-            // int delta_left  = encoder_ticks_left  - prev_ticks_left;
-            // int delta_right = encoder_ticks_right - prev_ticks_right;
-            // prev_ticks_left  = encoder_ticks_left;
-            // prev_ticks_right = encoder_ticks_right;
+            int delta_left  = encoder_ticks_left  - prev_ticks_left;
+            int delta_right = encoder_ticks_right - prev_ticks_right;
+            prev_ticks_left  = encoder_ticks_left;
+            prev_ticks_right = encoder_ticks_right;
 
             int speed_error_ticks;
             if(encoder_ticks_left > encoder_ticks_right){
@@ -101,38 +101,33 @@ __interrupt void speed_regulation_isr(void)
         display_time(elapsed_seconds);
 
         headlight_power();
-
-        encoder_ticks_right =0;
-        encoder_ticks_left=0;
-        
         TA0CTL &= ~TAIFG;
     }
 
 }
 
-int main(void)
-{
-    WDTCTL = WDTPW + WDTHOLD;  // Stop watchdog timer
+int main(void) {
+  WDTCTL = WDTPW + WDTHOLD; // Stop watchdog timer
 
-    BCSCTL1 = CALBC1_1MHZ;
-    DCOCTL  = CALDCO_1MHZ;
+  BCSCTL1 = CALBC1_1MHZ;
+  DCOCTL = CALDCO_1MHZ;
 
-    robot_is_moving = 0;
-    distance_sensor_reading =0;
-    elapsed_seconds = 0;
-    encoder_ticks_left = 0;
-    encoder_ticks_right = 0;
-    total_encoder_tick =0;
+  robot_is_moving = 0;
+  distance_sensor_reading =0;
+  elapsed_seconds = 0;
+  encoder_ticks_left = 0;
+  encoder_ticks_right = 0;
+  total_encoder_tick =0;
 
-    engines_configs();
-    headlight_config();
-    optocoupler_config();
-    timer_set();
-    timer_start();
-    ADC_init();
-    Aff_Init();
-    __enable_interrupt();
-    
-    homologation();
-    // run_choreography();
+  engines_configs();
+  headlight_config();
+  optocoupler_config();
+  timer_set();
+  timer_start();
+  ADC_init();
+  Aff_Init();
+  __enable_interrupt();
+  
+  homologation();
+  // run_choreography();
 }

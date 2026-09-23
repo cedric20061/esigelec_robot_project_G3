@@ -17,6 +17,8 @@
 // 90s budget accounts correctly for time spent in a brake flourish.
 #define BRAKE_FLOURISH_DURATION_MS 1800
 
+extern volatile int elapsed_seconds;
+
 /* THE DANCE ITSELF. This is the only block that have to be edited to
  change the choreography - nothing below it needs to change. */
 #if ROBOT_ROLE == ROBOT_ROLE_FAST
@@ -102,7 +104,10 @@ void run_choreography(void){
 
     robot_is_moving = 1;
 
-    while(elapsed_ms < CHOREO_DURATION_MS){
+    while(elapsed_seconds < CHOREO_DURATION_S && 
+        elapsed_ms < CHOREO_DURATION_MS && 
+        (elapsed_ms + choreography[i].duration_ms) < CHOREO_DURATION_MS
+    ){
         ChoreoStep step = choreography[i];
 
         if(step.move == MOVE_BRAKE_FLOURISH){
