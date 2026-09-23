@@ -1,0 +1,19 @@
+# --- Build outputs ---
+Debug/
+Release/
+*.obj
+*.o
+*.d
+*.pp
+*.crc
+
+# --- CCS workspace metadata (relevant if the workspace lives inside the
+#     project folder - harmless to ignore either way) ---
+.metadata/
+
+# --- Editor / OS junk ---
+*~
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
