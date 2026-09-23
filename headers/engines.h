@@ -1,10 +1,5 @@
-/*
-    engines.h
-    M. Labarre's reminder: the #ifndef / #define / #endif guard below
-    prevents this file from being included more than once in the same
-    translation unit. Before we added it, we had a bug where a variable
-    ended up declared twice across two different files.
- */
+//M. Labarre KIND reminder : the two following lines prevents the file from being included more than once
+//-->Error we used to have before this : one variable was declared twice in two deferent files
 #ifndef ENGINES_H
 #define ENGINES_H
 

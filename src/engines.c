@@ -33,6 +33,7 @@ void engines_configs(){
     P2OUT |= (BIT1 | BIT5); // initial motor direction
 
     // P2.2 and P2.4 as Timer1 PWM outputs
+
     P2DIR |= (BIT2 | BIT4);
     P2SEL |= (BIT2 | BIT4);
     P2SEL2 &= ~(BIT2 | BIT4);
@@ -77,17 +78,13 @@ void timer_set()
 }
 
 // Starts Timer0 in up/down mode
-void timer_start()
-{
-    TA0CTL |= MC_3;
-}
 
-// Stops Timer0
 void timer_reset()
 {
     TA0CTL &= ~MC_3;
 }
 
+<<<<<<< HEAD
 // Applies one of the robot's actions (direction + speed)
 void set_robot_action(int action)
 {
