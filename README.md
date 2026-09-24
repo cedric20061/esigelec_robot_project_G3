@@ -2,14 +2,14 @@
 
 ## Membres
 - Lucas BRISSAUD  
-- Nathanel Djeutcheu  
+- Nathanel DJEUTCHEU  
 - Amadou SOW  
 - Gerald GUIDI
 - Safietou DIOP  
 
 ## Résumé du projet
 Le robot doit :
-- parcourir 1,30 m en ligne droite, s'arrêter devant un obstacle, puis reprendre (homologation) ;
+- parcourir 1,30 m en ligne droite, s'arrêter devant un obstacle, puis reprendre (homologation) 
 - exécuter une chorégraphie de 90 s avec des déplacements et des figures, en évitant les obstacles de façon réactive (ajouter un deuxièeme robot à condition que les deux ne se touchent pas)
 
 Le code est découpé en trois parties :
@@ -39,10 +39,10 @@ Contient les variables partagées `distance_sensor_reading` et `elapsed_seconds`
 ### `choreography.c` / `choreography.h`
 Gère la danse de 90 s :
 - définition du format des mouvements (`ChoreoStep` avec type et durée) 
-- table de mouvements modifiable sans changer la logique ;
-- exécution de la chorégraphie avec évitement réactif d'obstacles.
+- table de mouvements modifiable sans changer la logique 
+- exécution de la chorégraphie avec évitement réactif d'obstacles
 
-Permet de compiler deux versions (rôles FAST / SLOW) avec des tables de mouvements différentes, mais le même code d'exécution.
+Permet de compiler deux versions (rôles FAST / SLOW) avec des tables de mouvements différentes, mais le même code d'exécution
 
 ## Variables partagées
 Chaque variable est définie une seule fois dans un `.c` et déclarée `extern` dans le header correspondant :
@@ -54,4 +54,4 @@ Chaque variable est définie une seule fois dans un `.c` et déclarée `extern` 
 - `elapsed_seconds` --> `main.c` --> secondes écoulées pendant l'homologation (pause pendant un obstacle) 
 
 ## Notes de compilation
-Pour changer de phase, commenter/décommenter l'appel à `homologation()` ou `run_choreography()` dans `main()` et faire attention à modifier les parametre pour le robot correspondant (voir message teams)
+Pour changer de phase, commenter/décommenter l'appel à `homologation()` ou `run_choreography()` dans `main()` et faire attention à modifier les parametre pour le robot correspondant (voir messages teams)
