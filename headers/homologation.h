@@ -1,24 +1,19 @@
 #ifndef HOMOLOGATION_H
 #define HOMOLOGATION_H
 
-// ADC threshold (raw units) at which the front sensor is considered
-// "obstacle detected" / stop condition reached. Shared between main.c
-// and actions.c so both compare against the exact same value.
+//Defines the limit where the front sensor detects an obstacle
 #define STOP_DISTANCE_THRESHOLD 0x150
 
-// Total distance for the qualifying run, in millimeters (1.30m, as
-// required by the contest rules) but we use 1.20m because of bias in our calculation of the distance
+//Defines the distance the robot must reach
 #define HOMOLOGATION_DISTANCE_MM 1200
 
-// Latest raw ADC reading from the front distance sensor.
-// Defined once in actions.c, shared (as extern) with main.c
+//Value read by the front sensor
 volatile int distance_sensor_reading;
 
-// Seconds elapsed since homologation() started, paused automatically
-// while an obstacle is detected (incremented in main.c's Timer0 ISR).
-// Used by homologation() to enforce the contest's 10s time limit.
+//Defines the time in seconds since the homologation() started running. It should not exced 10s
 volatile int elapsed_seconds;
 
+//Function to be defined in homologation.c
 void homologation();
 
 #endif

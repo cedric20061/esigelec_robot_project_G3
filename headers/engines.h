@@ -15,47 +15,33 @@
 // Number of light/dark marks on the encoder wheel (inner white wheel)
 #define ENCODER_SLOTS_PER_REV 24
 
-// Wheel geometry, in millimeters.
-// Millimeters (rather than centimeters) are used on purpose: the
-// distance-per-tick calculation involves an integer division that
-// truncates, and the smaller the unit, the smaller the *relative*
-// error that truncation introduces.
+//wheel radius in milimiters (2 cm measured with Mary's lovely ruler)
 #define WHEEL_RADIUS_MM 20
-// Wheel circumference, approximated with pi ~= 22/7 (2*pi*r)
+// Wheel circumference --> 2*pi*Radius
 #define WHEEL_PERIMETER_MM ((2 * WHEEL_RADIUS_MM * 22) / 7)
 
-// Converts a duty-cycle percentage (0-100) into a PWM compare value for
-// the current PWM period (TA1CCR0)
+// Converts a percentage into a PWM compare value for the current PWM period (our TA1CCR0)
 #define PERCENT_CONTROL(percent) ((percent) * (TA1CCR0 / 100))
 
-// Converts a PWM compare value back into a duty-cycle percentage
+// Converts a PWM compare value back into a percentage
 #define VALUE_TO_PERCENT(value) ((value) / (TA1CCR0 / 100))
 
+//Converts number of ticks into a distance 
 #define TICKS_TO_DISTANCE(ticks) ((long)ticks * WHEEL_PERIMETER_MM) / ENCODER_SLOTS_PER_REV
 
-// Proportional gain used by the wheel-speed regulation loop (see the
-// TIMER0_A1_VECTOR interrupt in main.c).
-//
-// This value is NOT universal - it depends on:
-//   - the control loop period (currently ~1s, see timer_set() below)
-//   - the PWM frequency / period (TA1CCR0)
-//   - the encoder resolution (ENCODER_SLOTS_PER_REV)
-// A real PID controller would adapt to these automatically, but running
-// one every control tick is more than the MSP430G2553 needs for this
-// project, so the gain has to be tuned by hand instead. Start low and
-// increase gradually while watching for oscillation (the wheel speeds
-// hunting back and forth instead of settling).
+// Proportional gain used by the wheel-speed regulation loop. Since the MSP430G253 is too slow, we cannot uese a PID
 #define SPEED_CORRECTION_GAIN 2
 
-// Shared engine/robot state - defined once in engines.c, declared here
-// as extern so every file that needs them sees the SAME variable
-// instead of each getting its own private copy (which is what used to
-// happen when these were declared here without `extern`).
+
+//Robot state : 1--> is moving and 0--> is not
 volatile char robot_is_moving;
 
+//Ticks value collected by each encoder respectively
 volatile int encoder_ticks_left;
 volatile int encoder_ticks_right;
 
+
+//Function prototypes to be defined in engine.c
 void engines_configs();
 int  clamp_percentage(int percent);
 void set_robot_action(int action);

@@ -1,34 +1,39 @@
 #include <msp430.h>
 #include "../headers/Afficheur.h"
 #include "../headers/engines.h"
-// How many steps to spread the braking ramp-down over, and how long to
-// wait between each step. Six steps of ~0.3s give a ~1.8s stop instead
-// of the previous abrupt full-speed-to-zero cut.
+
+
+//Defining a brake in 6 steps instead of on that might be abrupt --> 6 small stops of 0.3 each
 #define BRAKE_STEPS 6
-#define BRAKE_STEP_DELAY_CYCLES 300000 // ~0.3s at 1MHz
+#define BRAKE_STEP_DELAY_CYCLES 300000 
 
-// How long to hold a pivot-turn action before stopping again
-#define TURN_DURATION_CYCLES 500000 // ~0.5s at 1MHz
+// defines how long to hold a pivot-turn action before stopping again
+#define TURN_DURATION_CYCLES 500000 
 
-
+//Defining PWM base speed for each robot
 #define PERCENT_PWM_FAST_CHORE  25
 #define PERCENT_PWM_SLOW_CHORE  94
+
+//Selecting wich robot to consider
 #define PERCENT_PWM_CHORE PERCENT_PWM_SLOW_CHORE
 
-// Definitions for the shared state declared `extern` in engines.h
-extern volatile char robot_is_moving;
 
+extern volatile char robot_is_moving;
 extern volatile int encoder_ticks_left;
 extern volatile int encoder_ticks_right;
 
-// Clamps a duty-cycle percentage to the valid [0, 100] range.
+// Makes sure we do not switch between to far away values
 int clamp_percentage(int percent){
-    if(percent < 0)   return 0;
-    if(percent > PERCENT_PWM_CHORE) return PERCENT_PWM_CHORE;
+    if(percent < 0) {
+        return 0;
+    }  
+    if(percent > PERCENT_PWM_CHORE) {
+        return PERCENT_PWM_CHORE;
+    }
     return percent;
 }
 
-// Configures the motor direction pins and Timer1 (PWM)
+// Configures the motor direction pins and Timer1 
 void engines_configs(){
 
     // Motor direction pins as GPIO outputs (A = left engine, B = right engine)
@@ -49,7 +54,7 @@ void engines_configs(){
     TA1CCTL1 |= OUTMOD_7; // reset/set PWM mode on both compare outputs
     TA1CCTL2 |= OUTMOD_7;
 
-    TA1CCR0 = 20000; // PWM period (100 kHz, under the 250 kHz limit from the datasheet)
+    TA1CCR0 = 20000; // PWM period (100 kHz, under the 250 kHz limit (cf datasheet))
 
     // Both motors stopped at startup
     TA1CCR1 = 0;
@@ -77,11 +82,11 @@ void optocoupler_config(){
     P2IFG &= ~BIT3; // clear any pending flag before enabling
 }
 
-// Timer0 configuration (drives the ~1s control-loop tick)
+// Timer0 configuration --> drives the ~1s control-loop tick
 void timer_set()
 {
     TA0CTL = TASSEL_2 | ID_3 | TAIE;
-    TA0CCR0 = 62500; // ~every 1s
+    TA0CCR0 = 62500; // every 1s
 }
 
 // Starts Timer0 in up/down mode
@@ -99,6 +104,7 @@ void timer_reset()
 // Applies one of the robot's actions (direction + speed)
 void set_robot_action(int action)
 {            
+    //Variable used to make correction on the robot's wheels
     static int prev_ticks_left = 0;
     static int prev_ticks_right = 0;
     int delta_left  = encoder_ticks_left  - prev_ticks_left;
@@ -110,8 +116,8 @@ void set_robot_action(int action)
     
     switch(action)
     {
+        // Favor acceleration since the caster wheel is at the back --> M. Labarre
         case ACTION_FORWARD:
-            // Favor acceleration since the caster wheel is at the back
             robot_is_moving = 1;
             P2OUT &= ~BIT1; // left wheel direction
             P2OUT |= BIT5;  // right wheel direction
@@ -153,18 +159,10 @@ void set_robot_action(int action)
             break;
 
         case ACTION_BRAKE: {
-            // Smooth, progressive braking instead of the old 2-step ramp
-            // that still ended in an abrupt jump straight to 0%. That
-            // final cut is what caused the harsh stop: even after two
-            // -25% steps, the last drop could still be large (e.g. 95%
-            // -> 70% -> 45% -> 0% is a 45-point instant cut). Here we
-            // ramp linearly from whatever the current speed is down to
-            // exactly 0 over BRAKE_STEPS steps, so the last step is
-            // always small.
+            // Smooth, progressive braking 
             robot_is_moving = 0;
             P2OUT &= ~BIT1;
             P2OUT |= BIT5;
-
             int start_percent_left  = clamp_percentage(VALUE_TO_PERCENT(TA1CCR1));
             int start_percent_right = clamp_percentage(VALUE_TO_PERCENT(TA1CCR2));
             int step;
@@ -191,6 +189,7 @@ void set_robot_action(int action)
             break;
     }
 }
+//Robot actions
 
 void robot_move_forward()
 {

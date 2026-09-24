@@ -3,40 +3,36 @@
 
 #include "homologation.h"
 
-// Build this firmware for the FAST or the SLOW robot by picking one of
-// these two - it selects which move table gets compiled in, in
-// choreography.c. Both robots run the exact same choreography ENGINE;
-// only the table (and therefore the actual dance) differs, which is the
-// whole point of the modular design based on the transition table see in state engine.
+//Definig roles to choose from the two robots since they should not function the same
 #define ROBOT_ROLE_FAST 1
 #define ROBOT_ROLE_SLOW 2
-#define ROBOT_ROLE ROBOT_ROLE_SLOW   // change this per robot build
 
-// Total time budget for the contest routine (contest rules: 90s)
+//Defines which robot has been choosen
+#define ROBOT_ROLE ROBOT_ROLE_SLOW   
+
+// Total time for the whole choreography
 #define CHOREO_DURATION_MS 90000UL
 #define CHOREO_DURATION_S 90
 
-// Distance-sensor threshold used to react to something in front of the
-// robot WHILE dancing (the other robot, a prop, etc). Reuses the
-// homologation threshold by default.
+//Distance treshold when an obstacle is detected. This one is lower than the one used in homologation because 
+//we want the sensor to be more precise here
 #define CHOREO_OBSTACLE_THRESHOLD 0x050
 
-// The available move "verbs".
+// The available moves
 typedef enum {
     MOVE_FORWARD,
     MOVE_CURVE_LEFT,
     MOVE_CURVE_RIGHT,
     MOVE_PAUSE,
     MOVE_BRAKE_FLOURISH
-    /* MOVE_BACKWARD, MOVE_SPIN_LEFT, MOVE_SPIN_RIGHT: not wired up yet. */
-} ChoreoMove;
+    } ChoreoMove;
 
-// One line of the dance: a move and how long to hold it (ms).
-// Edit the tables in choreography.c - nothing else needs to change.
+// Defines the dance move to make and the duration of it
 typedef struct {
     ChoreoMove move;
     unsigned int duration_ms;
 } ChoreoStep;
+
 
 void run_choreography(void);
 
