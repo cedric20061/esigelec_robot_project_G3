@@ -45,7 +45,7 @@
 // project, so the gain has to be tuned by hand instead. Start low and
 // increase gradually while watching for oscillation (the wheel speeds
 // hunting back and forth instead of settling).
-#define SPEED_CORRECTION_GAIN 10
+#define SPEED_CORRECTION_GAIN 2
 
 // Shared engine/robot state - defined once in engines.c, declared here
 // as extern so every file that needs them sees the SAME variable
@@ -55,7 +55,6 @@ volatile char robot_is_moving;
 
 volatile int encoder_ticks_left;
 volatile int encoder_ticks_right;
-volatile int total_encoder_tick;
 
 void engines_configs();
 int  clamp_percentage(int percent);
