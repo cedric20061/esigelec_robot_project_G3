@@ -1,6 +1,8 @@
 #ifndef CHOREOGRAPHY_H
 #define CHOREOGRAPHY_H
 
+#include "homologation.h"
+
 // Build this firmware for the FAST or the SLOW robot by picking one of
 // these two - it selects which move table gets compiled in, in
 // choreography.c. Both robots run the exact same choreography ENGINE;
@@ -8,7 +10,7 @@
 // whole point of the modular design based on the transition table see in state engine.
 #define ROBOT_ROLE_FAST 1
 #define ROBOT_ROLE_SLOW 2
-#define ROBOT_ROLE ROBOT_ROLE_FAST   // change this per robot build
+#define ROBOT_ROLE ROBOT_ROLE_SLOW   // change this per robot build
 
 // Total time budget for the contest routine (contest rules: 90s)
 #define CHOREO_DURATION_MS 90000UL
@@ -17,9 +19,7 @@
 // Distance-sensor threshold used to react to something in front of the
 // robot WHILE dancing (the other robot, a prop, etc). Reuses the
 // homologation threshold by default.
-#define CHOREO_OBSTACLE_THRESHOLD 0x150
-
-volatile int elapsed_seconds;
+#define CHOREO_OBSTACLE_THRESHOLD 0x050
 
 // The available move "verbs".
 typedef enum {

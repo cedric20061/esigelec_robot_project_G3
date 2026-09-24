@@ -27,21 +27,25 @@ static const ChoreoStep choreography[] = {
     { MOVE_CURVE_RIGHT,      600 },
     { MOVE_FORWARD,          800 },
     { MOVE_CURVE_LEFT,       600 },
-    { MOVE_PAUSE,            300 },
+    { MOVE_FORWARD,          800 },
     { MOVE_BRAKE_FLOURISH,     0 },
     { MOVE_CURVE_LEFT,       900 },
-    { MOVE_FORWARD,         1000 },
+    { MOVE_FORWARD,          900 },
     { MOVE_CURVE_RIGHT,      700 },
-    { MOVE_PAUSE,            300 },
+    { MOVE_FORWARD,          900 },
 };
 #else // ROBOT_ROLE_SLOW
 static const ChoreoStep choreography[] = {
-    { MOVE_FORWARD,         2000 },
-    { MOVE_PAUSE,            500 },
-    { MOVE_CURVE_LEFT,      1200 },
-    { MOVE_PAUSE,            500 },
-    { MOVE_CURVE_RIGHT,     1200 },
+    { MOVE_FORWARD,         1200 },
+    { MOVE_CURVE_RIGHT,      600 },
+    { MOVE_FORWARD,          800 },
+    { MOVE_CURVE_LEFT,       600 },
+    { MOVE_FORWARD,          800 },
     { MOVE_BRAKE_FLOURISH,     0 },
+    { MOVE_CURVE_LEFT,       900 },
+    { MOVE_FORWARD,          900 },
+    { MOVE_CURVE_RIGHT,      700 },
+    { MOVE_FORWARD,          900 },
 };
 #endif
 
