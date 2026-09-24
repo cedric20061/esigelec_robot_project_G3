@@ -1,7 +1,6 @@
 #include <msp430.h>
 #include "../headers/Afficheur.h"
 #include "../headers/engines.h"
-
 // How many steps to spread the braking ramp-down over, and how long to
 // wait between each step. Six steps of ~0.3s give a ~1.8s stop instead
 // of the previous abrupt full-speed-to-zero cut.
@@ -11,13 +10,21 @@
 // How long to hold a pivot-turn action before stopping again
 #define TURN_DURATION_CYCLES 500000 // ~0.5s at 1MHz
 
+
+#define PERCENT_PWM_FAST_CHORE  25
+#define PERCENT_PWM_SLOW_CHORE  94
+#define PERCENT_PWM_CHORE PERCENT_PWM_SLOW_CHORE
+
 // Definitions for the shared state declared `extern` in engines.h
 extern volatile char robot_is_moving;
+
+extern volatile int encoder_ticks_left;
+extern volatile int encoder_ticks_right;
 
 // Clamps a duty-cycle percentage to the valid [0, 100] range.
 int clamp_percentage(int percent){
     if(percent < 0)   return 0;
-    if(percent > 100) return 100;
+    if(percent > PERCENT_PWM_CHORE) return PERCENT_PWM_CHORE;
     return percent;
 }
 
@@ -38,11 +45,11 @@ void engines_configs(){
     P2SEL |= (BIT2 | BIT4);
     P2SEL2 &= ~(BIT2 | BIT4);
 
-    TA1CTL = TASSEL_2 | MC_1 | ID_0; // Timer1: SMCLK, no divider, up mode
+    TA1CTL = TASSEL_2 | MC_1 | ID_3; // Timer1: SMCLK, no divider, up mode
     TA1CCTL1 |= OUTMOD_7; // reset/set PWM mode on both compare outputs
     TA1CCTL2 |= OUTMOD_7;
 
-    TA1CCR0 = 10000; // PWM period (100 kHz, under the 250 kHz limit from the datasheet)
+    TA1CCR0 = 20000; // PWM period (100 kHz, under the 250 kHz limit from the datasheet)
 
     // Both motors stopped at startup
     TA1CCR1 = 0;
@@ -78,16 +85,29 @@ void timer_set()
 }
 
 // Starts Timer0 in up/down mode
+void timer_start()
+{
+    TA0CTL |= MC_3;
+}
 
+// Stop Timer0
 void timer_reset()
 {
     TA0CTL &= ~MC_3;
 }
 
-<<<<<<< HEAD
 // Applies one of the robot's actions (direction + speed)
 void set_robot_action(int action)
-{
+{            
+    static int prev_ticks_left = 0;
+    static int prev_ticks_right = 0;
+    int delta_left  = encoder_ticks_left  - prev_ticks_left;
+    int delta_right = encoder_ticks_right - prev_ticks_right;
+    prev_ticks_left  = encoder_ticks_left;
+    prev_ticks_right = encoder_ticks_right;
+
+    int speed_error_ticks;
+    
     switch(action)
     {
         case ACTION_FORWARD:
@@ -95,8 +115,17 @@ void set_robot_action(int action)
             robot_is_moving = 1;
             P2OUT &= ~BIT1; // left wheel direction
             P2OUT |= BIT5;  // right wheel direction
-            TA1CCR1 = PERCENT_CONTROL(50);
-            TA1CCR2 = PERCENT_CONTROL(50);
+            TA1CCR1 = PERCENT_CONTROL(clamp_percentage(PERCENT_PWM_CHORE));
+            TA1CCR2 = PERCENT_CONTROL(clamp_percentage(PERCENT_PWM_CHORE - SPEED_CORRECTION_GAIN));
+            // if(delta_left > delta_right){ 
+            //     speed_error_ticks = delta_left - delta_right;
+            //     TA1CCR1 = PERCENT_CONTROL(clamp_percentage(50 - speed_error_ticks*SPEED_CORRECTION_GAIN));
+            //     TA1CCR2 = PERCENT_CONTROL(clamp_percentage(50 + speed_error_ticks*SPEED_CORRECTION_GAIN));
+            // } else {
+            //     speed_error_ticks = delta_right - delta_left;
+            //     TA1CCR1 = PERCENT_CONTROL(clamp_percentage(50 + speed_error_ticks*SPEED_CORRECTION_GAIN));
+            //     TA1CCR2 = PERCENT_CONTROL(clamp_percentage(50 - speed_error_ticks*SPEED_CORRECTION_GAIN));
+            // }
             break;
 
         case ACTION_RIGHT:
@@ -148,8 +177,8 @@ void set_robot_action(int action)
                 __delay_cycles(BRAKE_STEP_DELAY_CYCLES);
             }
 
-            TA1CCR1 = 0;
-            TA1CCR2 = 0;
+            // TA1CCR1 = 0;
+            // TA1CCR2 = 0;
             break;
         }
 
@@ -173,7 +202,7 @@ void robot_turn_left()
     set_robot_action(ACTION_STOP);
     set_robot_action(ACTION_LEFT);
     __delay_cycles(TURN_DURATION_CYCLES);
-    set_robot_action(ACTION_STOP);
+    // set_robot_action(ACTION_STOP);
 }
 
 void robot_turn_right()
@@ -181,7 +210,7 @@ void robot_turn_right()
     set_robot_action(ACTION_STOP);
     set_robot_action(ACTION_RIGHT);
     __delay_cycles(TURN_DURATION_CYCLES);
-    set_robot_action(ACTION_STOP);
+    // set_robot_action(ACTION_STOP);
 }
 
 void robot_stop(){
