@@ -1,4 +1,4 @@
-# Robot Danseur – MSP430G2553 – Groupe 3
+## Robot Danseur – MSP430G2553 – Groupe 3
 
 ## Membres
 - Lucas BRISSAUD  
@@ -16,7 +16,6 @@ Le code est découpé en trois parties :
 - gestion des moteurs et de l'asservissement ;
 - épreuve d'homologation ;
 - chorégraphie du concours
-
 
 ## Fichiers principaux
 ### `main.c`
@@ -47,8 +46,6 @@ Gère la danse de 90 s :
 
 Permet de compiler deux versions (rôles FAST / SLOW) avec des tables de mouvements différentes, mais le même code d'exécution.
 
----
-
 ## Variables partagées
 
 Chaque variable est définie une seule fois dans un `.c` et déclarée `extern` dans le header correspondant :
@@ -60,7 +57,6 @@ Chaque variable est définie une seule fois dans un `.c` et déclarée `extern` 
 | `distance_sensor_reading` | `actions.c` | dernière lecture du capteur de distance avant |
 | `elapsed_seconds` | `main.c` | secondes écoulées pendant l'homologation (pause pendant un obstacle) |
 
----
 
 ## Notes de compilation
 Pour changer de phase, commenter/décommenter l'appel à `homologation()` ou `run_choreography()` dans `main()` et faire attention à modifier les parametre pour le robot correspondant (voir message teams)
