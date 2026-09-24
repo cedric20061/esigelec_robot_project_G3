@@ -45,8 +45,8 @@ void homologation(){
     long delta = 0;
     // Stops as soon as EITHER the distance is covered OR the 10s budget
     // (paused while an obstacle is present) runs out.
-    while(distance_traveled_mm <= HOMOLOGATION_DISTANCE_MM
-          && elapsed_seconds < HOMOLOGATION_TIMEOUT_SECONDS){
+    while(distance_traveled_mm <= HOMOLOGATION_DISTANCE_MM){
+          //&& elapsed_seconds < HOMOLOGATION_TIMEOUT_SECONDS){
 
         ADC_Demarrer_conversion(3);
 
@@ -58,6 +58,7 @@ void homologation(){
             robot_move_forward();
         }
         distance_traveled_mm = encoder_ticks_left*5;
+
     }
 
     robot_stop();
