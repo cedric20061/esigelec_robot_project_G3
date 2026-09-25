@@ -28,7 +28,7 @@ Gère les moteurs :
 - calcul de la distance parcourue à partir des encodeurs
 Contient aussi les variables partagées `robot_is_moving` et `distance_traveled_mm`
 
-### `actions.c` / `actions.h`
+### `homologation.c` / `homologation.h`
 Implémente l'épreuve d'homologation :
 - lecture du capteur de distance avant 
 - détection d'obstacle avec anti-rebond 
@@ -54,4 +54,18 @@ Chaque variable est définie une seule fois dans un `.c` et déclarée `extern` 
 - `elapsed_seconds` --> `main.c` --> secondes écoulées pendant l'homologation (pause pendant un obstacle) 
 
 ## Notes de compilation
-Pour changer de phase, commenter/décommenter l'appel à `homologation()` ou `run_choreography()` dans `main()` et faire attention à modifier les parametre pour le robot correspondant (voir messages teams)
+Pour changer de phase, changer la constante IS_DANCING (1 pour la chorégraphie et 0 pour l'homologation) dans `main.c` et faire attention à modifier les parametre pour le robot correspondant:
+
+### Parameters --> Homologation pour que ça marche :
+STOP_DISTANCE_TRESHOLD = 0x150 -> homologation.h
+SPEED_CORRECTION_GAIN = 2 --> engines.h
+PERCENT_PWM_SLOW_CHORE 94 --->engines.c
+ 
+### Parameters --> chorégraphie:
+CHOREO_OBSTACLE_TRESHOLD = 0x050 -->choregraphie.h
+FAST: PERCENT_PWM_FAST_CHORE
+ROBOT_ROLE = ROBOT_ROLE_FAST
+SLOW: PERCENT_PWM_SLOW_CHORE
+ROBOT_ROLE = ROBOT_ROLE_SLOW
+TA1CCR0 = 20000
+ID_3

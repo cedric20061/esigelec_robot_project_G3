@@ -21,16 +21,15 @@ extern volatile int elapsed_seconds;
 //FAST
 #if ROBOT_ROLE == ROBOT_ROLE_FAST
 static const ChoreoStep choreography[] = {
-    { MOVE_FORWARD,         1200 },
+    { MOVE_FORWARD,          500 },
     { MOVE_CURVE_RIGHT,      600 },
     { MOVE_FORWARD,          800 },
     { MOVE_CURVE_LEFT,       600 },
-    { MOVE_FORWARD,          800 },
+    { MOVE_FORWARD,          300 },
     { MOVE_BRAKE_FLOURISH,     0 },
     { MOVE_CURVE_LEFT,       900 },
-    { MOVE_FORWARD,          900 },
+    { MOVE_FORWARD,          300 },
     { MOVE_CURVE_RIGHT,      700 },
-    { MOVE_FORWARD,          900 },
 };
 #else //SLOW
 static const ChoreoStep choreography[] = {
@@ -71,6 +70,7 @@ static void apply_move(ChoreoMove move){
 }
 
 // Turns briefly away from the detected obstacle then lets run_choreography() resume the interrupted move 
+//This fucntion was meant to allow both robot to be on the dance floor without touching one another. Unfortunately , it stop working the way it did 
 static void avoid_obstacle(){
     robot_stop();
     if((TA0R & 0x01) == 0){
@@ -96,7 +96,7 @@ static void hold_move_ms(ChoreoMove move, unsigned int duration_ms){
         distance_sensor_reading = ADC_Lire_resultat();
 
         if(distance_sensor_reading >= CHOREO_OBSTACLE_THRESHOLD){
-            avoid_obstacle();
+            //avoid_obstacle(); ---> thus, it's no longer used
             apply_move(move); // resume the interrupted move
         }
     }

@@ -23,6 +23,9 @@
 // Converts a percentage into a PWM compare value for the current PWM period (our TA1CCR0)
 #define PERCENT_CONTROL(percent) ((percent) * (TA1CCR0 / 100))
 
+// Converts a /1000 instead. It Allowed us to corret the wheels more precisely with a wider range
+#define PERMILL_CONTROL(percent) ((percent) * (TA1CCR0 / 1000))
+
 // Converts a PWM compare value back into a percentage
 #define VALUE_TO_PERCENT(value) ((value) / (TA1CCR0 / 100))
 
@@ -30,7 +33,7 @@
 #define TICKS_TO_DISTANCE(ticks) ((long)ticks * WHEEL_PERIMETER_MM) / ENCODER_SLOTS_PER_REV
 
 // Proportional gain used by the wheel-speed regulation loop. Since the MSP430G253 is too slow, we cannot uese a PID
-#define SPEED_CORRECTION_GAIN 2
+#define SPEED_CORRECTION_GAIN 3
 
 
 //Robot state : 1--> is moving and 0--> is not

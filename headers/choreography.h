@@ -8,7 +8,7 @@
 #define ROBOT_ROLE_SLOW 2
 
 //Defines which robot has been choosen
-#define ROBOT_ROLE ROBOT_ROLE_SLOW   
+#define ROBOT_ROLE ROBOT_ROLE_FAST   
 
 // Total time for the whole choreography
 #define CHOREO_DURATION_MS 90000UL
@@ -16,7 +16,7 @@
 
 //Distance treshold when an obstacle is detected. This one is lower than the one used in homologation because 
 //we want the sensor to be more precise here
-#define CHOREO_OBSTACLE_THRESHOLD 0x050
+#define CHOREO_OBSTACLE_THRESHOLD 0x150
 
 // The available moves
 typedef enum {
